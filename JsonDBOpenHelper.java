@@ -1,4 +1,3 @@
-
 import android.content.Context;
 
 import org.json.JSONException;
@@ -19,11 +18,12 @@ public abstract class JsonDBOpenHelper {
     private final File file;
     private JSONObject jsonObject;
 
-    public JsonDBOpenHelper(String dbName, Context dbContext, int dbVersion) {
+    protected JsonDBOpenHelper(String dbName, Context dbContext, int dbVersion) {
         this.dbName = dbName + ".json";
         this.dbContext = dbContext;
         this.dbVersion = dbVersion;
-        file = new File(this.dbContext.getFilesDir(),this.dbName);
+        this.file = new File(this.dbContext.getFilesDir(),this.dbName);
+
         try {
             buildJsonDataBase();
         } catch (IOException | JSONException | JsonDBException e) {
@@ -32,7 +32,7 @@ public abstract class JsonDBOpenHelper {
     }
 
     public void buildJsonDataBase() throws IOException, JsonDBException, JSONException {
-        if (file.createNewFile()) {
+        if (this.file.createNewFile()) {
             jsonObject = new JSONObject();
             jsonObject.put("_Version", this.dbVersion);
             onCreateDB(jsonObject);
@@ -50,7 +50,7 @@ public abstract class JsonDBOpenHelper {
     }
 
     public JSONObject readJson() throws IOException, JSONException {
-        FileReader fileReader = new FileReader(file);
+        FileReader fileReader = new FileReader(this.file);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
         StringBuilder stringBuilder = new StringBuilder();
         String line = bufferedReader.readLine();
@@ -67,7 +67,7 @@ public abstract class JsonDBOpenHelper {
         CheckIfVersionSmaller(jsonObject);
         checkIfVersionExists(jsonObject);
         String userString = jsonObject.toString();
-        FileWriter fileWriter = new FileWriter(file);
+        FileWriter fileWriter = new FileWriter(this.file);
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
         bufferedWriter.write(userString);
         bufferedWriter.close();
@@ -90,4 +90,5 @@ public abstract class JsonDBOpenHelper {
     abstract void onCreateDB(JSONObject jsonObject) throws JSONException, IOException, JsonDBException;
 
     abstract void onUpdateDB(JSONObject jsonObject) throws JSONException, IOException, JsonDBException;
+
 }
