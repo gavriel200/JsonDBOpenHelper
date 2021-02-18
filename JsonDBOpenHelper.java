@@ -19,6 +19,10 @@ public abstract class JsonDBOpenHelper {
     private JSONObject jsonObject;
 
     protected JsonDBOpenHelper(String dbName, Context dbContext, int dbVersion) {
+        // JsonDBOpenHelper constructor, in here we check if the json database exists
+        // if it does not we create it using the onCreateDB method.
+        // if it does exists we check the version if the version is newer then the old one
+        // we use the onUpdateDB method.
         this.dbName = dbName + ".json";
         this.dbContext = dbContext;
         this.dbVersion = dbVersion;
@@ -32,7 +36,8 @@ public abstract class JsonDBOpenHelper {
     }
 
     public void buildJsonDataBase() throws IOException, JsonDBException, JSONException {
-        if (this.file.createNewFile()) {
+        // used in the constructor.
+        if (file.createNewFile()) {
             jsonObject = new JSONObject();
             jsonObject.put("_Version", this.dbVersion);
             onCreateDB(jsonObject);
@@ -50,6 +55,8 @@ public abstract class JsonDBOpenHelper {
     }
 
     public JSONObject readJson() throws IOException, JSONException {
+        // call this method at the start of your methods to read the 
+        // json file and create a jsonObject out of the database.
         FileReader fileReader = new FileReader(this.file);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
         StringBuilder stringBuilder = new StringBuilder();
@@ -64,6 +71,7 @@ public abstract class JsonDBOpenHelper {
     }
 
     public void writeJson(JSONObject jsonObject) throws IOException, JsonDBException, JSONException {
+        // a method that takes in the jsonObject and writes it into the json file.
         CheckIfVersionSmaller(jsonObject);
         checkIfVersionExists(jsonObject);
         String userString = jsonObject.toString();
@@ -74,6 +82,8 @@ public abstract class JsonDBOpenHelper {
     }
 
     public void checkIfVersionExists(JSONObject jsonObject) throws JsonDBException {
+        // checking that the _version exists in json database for version controll
+        // is called every time we create the object of the database controller.
         if (!jsonObject.has("_Version")) {
             throw new JsonDBException("you should have a \"_version\" key in the jsonObject " +
                     "when using the JsonDBOpenHelper class.");
@@ -81,12 +91,16 @@ public abstract class JsonDBOpenHelper {
     }
 
     public void CheckIfVersionSmaller(JSONObject jsonObject) throws JsonDBException, JSONException {
+        // checking if the _version is smaller then the version of the database so there
+        // wont be any problems with version control.
         if (this.dbVersion < jsonObject.getInt("_Version")) {
             throw new JsonDBException("your version can not be older then " +
                     "the current version.");
         }
     }
-
+    
+    // the two abstract methods are used for creating and updating the json database
+    
     abstract void onCreateDB(JSONObject jsonObject) throws JSONException, IOException, JsonDBException;
 
     abstract void onUpdateDB(JSONObject jsonObject) throws JSONException, IOException, JsonDBException;
